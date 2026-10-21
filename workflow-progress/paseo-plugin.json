@@ -2,6 +2,9 @@
   "id": "workflow-progress",
   "name": "Workflow Progress",
   "description": "Shows Claude Code Workflow progress (steps started, done, silent sub-agents) as cards in the owning agent's Paseo timeline.",
+  "media": [
+    "assets/timeline-cards.png"
+  ],
   "requirements": {
     "paseo": ">=0.11.1"
   }

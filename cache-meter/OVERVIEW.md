@@ -4,8 +4,12 @@ Paseo shows the context-window percentage and plan usage, but not how much of ea
 
 ## What it shows
 
-- The pill reads `CH <last turn>/<session> <time>`, for example `CH 97/94 14:05`: the cache-read percentage of the last turn, of the whole session, and when the last reply ended.
-- Clicking the pill opens a popover with the same figures spelled out, plus one figure pooled over every agent the plugin has read.
+- The pill reads `CH <last turn>/<session> <time>`, for example `CH 100/97 09:39`: the cache-read percentage of the last turn, of the whole session, and when the last reply ended. Hovering spells it out.
+- Clicking the pill opens a popover with the figures to one decimal, plus one figure pooled over every agent the plugin has read.
+
+![The Cache Meter pill with its hover text](assets/pill-hover.png)
+
+![The Cache Meter popover](assets/popover.png)
 - Cache-read % is `cache read / (uncached input + cache read + cache write)`, summed over the API calls of the turn or session.
 
 ## How it works
