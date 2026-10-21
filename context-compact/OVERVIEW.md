@@ -22,6 +22,8 @@ With the defaults, Claude Code compacts at 60% of 1M tokens (about 600k; Claude 
 - Before a Claude session opens (new agent, resume, refresh or import), the plugin adds the two environment variables to it. Claude Code then compacts the chat in place when the threshold is reached and carries on; nothing is restarted.
 - At the end of each turn, it reads the size of the last request from the agent's transcript and sends the nudge once when the context passes the nudge percentage. The nudge re-arms after the context drops back below it, which happens after a compaction.
 
+![An agent receives the nudge at 58%, saves its handoff and carries on (custom nudge text)](assets/nudge.png)
+
 ## Limits
 
 - A change applies to a chat the next time it opens. A running Claude process keeps the settings it started with.

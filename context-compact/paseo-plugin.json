@@ -2,6 +2,9 @@
   "id": "context-compact",
   "name": "Context Compact",
   "description": "Sets the Claude Code auto-compaction threshold (a percent of a token window) for every Claude session Paseo opens, with an optional nudge to save notes before compaction.",
+  "media": [
+    "assets/nudge.png"
+  ],
   "requirements": {
     "paseo": ">=0.12.0"
   }
