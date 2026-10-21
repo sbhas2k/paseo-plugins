@@ -1,0 +1,8 @@
+{
+  "id": "cache-meter",
+  "name": "Cache Meter",
+  "description": "Shows each agent's prompt-cache read % (last turn and session) as a small composer pill, read from the agent's local Claude Code or Pi transcript.",
+  "requirements": {
+    "paseo": ">=0.11.1"
+  }
+}
