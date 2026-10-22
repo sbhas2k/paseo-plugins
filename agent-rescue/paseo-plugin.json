@@ -1,0 +1,6 @@
+{
+  "id": "agent-rescue",
+  "name": "Agent Rescue",
+  "description": "Spots agents whose session died (\"A foreground turn is already active\", \"Timed out closing previous session\", ...) and rescues them with one click: a Stuck pill on the composer and a sidebar page, Reload with retry, and a guarded restart of the provider's ACP processes.",
+  "requirements": { "paseo": ">=0.12.0" }
+}
