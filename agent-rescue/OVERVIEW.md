@@ -38,7 +38,8 @@ Settings → Plugins → Agent Rescue:
 ## Limits
 
 - **Restart processes is Windows-only.** It uses `Get-CimInstance` and `taskkill`. Reload works on every platform.
-- On the Windows desktop app the plugin runs the CLI bundled inside the app, so `paseo` does not need to be on PATH. Anywhere else `paseo` must be on PATH, or `PASEO_CLI_PATH` must point at it.
+- **Finding the Paseo command.** The plugin first looks for the command bundled with the desktop app. It searches upward from the app's executable for `resources` (Windows) or `Contents/Resources` (macOS), so `paseo` does not need to be on your PATH. With no desktop app (a daemon installed from npm) it uses `paseo` from PATH, or `PASEO_CLI_PATH` if set.
+- **Tested on the Windows desktop app.** The macOS lookup follows the same layout but has not been run on a Mac yet. At startup the plugin logs a self-check, so you can see at once whether Reload will work: run `paseo plugin logs agent-rescue` and look for `CLI OK: …` or `CLI NOT WORKING: …`.
 - It can only see agents whose last error carries a matching text. A new failure text has to be added to `patterns`.
 - Restart stops **every** daemon-started process of that provider. That is why it refuses while any sibling agent is busy.
 

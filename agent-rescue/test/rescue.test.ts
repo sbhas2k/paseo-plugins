@@ -78,7 +78,8 @@ test("blockers name a same-provider sibling that is busy, and nothing else", () 
 
 // AC3 — the CLI launch, no shell
 test("cliInvocation runs the bundled CLI through Paseo.exe as node", () => {
-  const inv = cliInvocation("C:\\Program Files\\Paseo\\Paseo.exe", ["agent", "reload", "x"], { PATH: "p" }, "win32");
+  const winRunner = "C:\\Program Files\\Paseo\\resources\\app.asar.unpacked\\dist\\daemon\\node-entrypoint-runner.js";
+  const inv = cliInvocation("C:\\Program Files\\Paseo\\Paseo.exe", ["agent", "reload", "x"], { PATH: "p" }, "win32", (f) => f === winRunner);
   assert.equal(inv.file, "C:\\Program Files\\Paseo\\Paseo.exe");
   assert.deepEqual(inv.args, [
     "--disable-warning=DEP0040",
@@ -94,13 +95,28 @@ test("cliInvocation runs the bundled CLI through Paseo.exe as node", () => {
   assert.equal(inv.env.PATH, "p");
 });
 
-test("outside the Windows desktop app the CLI is resolved from PATH", () => {
+test("the macOS app is found from its main or helper executable via Contents/Resources", () => {
+  const res = "/Applications/Paseo.app/Contents/Resources";
+  const exists = (f: string) => f === `${res}/app.asar.unpacked/dist/daemon/node-entrypoint-runner.js`;
+  for (const execPath of [
+    "/Applications/Paseo.app/Contents/MacOS/Paseo",
+    "/Applications/Paseo.app/Contents/Frameworks/Paseo Helper.app/Contents/MacOS/Paseo Helper",
+  ]) {
+    const inv = cliInvocation(execPath, ["agent", "reload", "x"], {}, "darwin", exists);
+    assert.equal(inv.file, execPath);
+    assert.equal(inv.viaPath, undefined);
+    assert.equal(inv.args[1], `${res}/app.asar.unpacked/dist/daemon/node-entrypoint-runner.js`);
+    assert.equal(inv.args[3], `${res}/app.asar/node_modules/@getpaseo/cli/dist/index.js`);
+  }
+});
+
+test("with no desktop app around the executable the CLI is resolved from PATH", () => {
   for (const [execPath, platform] of [
-    ["/Applications/Paseo.app/Contents/MacOS/Paseo", "darwin"],
     ["/usr/bin/node", "linux"],
+    ["/Applications/Paseo.app/Contents/MacOS/Paseo", "darwin"],
     ["C:\\Program Files\\nodejs\\node.exe", "win32"],
   ] as const) {
-    const inv = cliInvocation(execPath, ["agent", "reload", "x"], {}, platform);
+    const inv = cliInvocation(execPath, ["agent", "reload", "x"], {}, platform, () => false);
     assert.equal(inv.file, "paseo", execPath);
     assert.equal(inv.viaPath, true, execPath);
     assert.deepEqual(inv.args, ["agent", "reload", "x"]);
@@ -108,13 +124,13 @@ test("outside the Windows desktop app the CLI is resolved from PATH", () => {
 });
 
 test("PASEO_CLI_PATH pointing at a .js entry runs it with the current executable", () => {
-  const inv = cliInvocation("C:\\node\\node.exe", ["agent"], { PASEO_CLI_PATH: "D:\\cli\\index.js" }, "win32");
+  const inv = cliInvocation("C:\\node\\node.exe", ["agent"], { PASEO_CLI_PATH: "D:\\cli\\index.js" }, "win32", () => true);
   assert.equal(inv.file, "C:\\node\\node.exe");
   assert.deepEqual(inv.args, ["D:\\cli\\index.js", "agent"]);
 });
 
 test("PASEO_CLI_PATH pointing at an executable runs it directly", () => {
-  const inv = cliInvocation("C:\\node\\node.exe", ["agent"], { PASEO_CLI_PATH: "/usr/local/bin/paseo" }, "linux");
+  const inv = cliInvocation("C:\\node\\node.exe", ["agent"], { PASEO_CLI_PATH: "/usr/local/bin/paseo" }, "linux", () => true);
   assert.equal(inv.file, "/usr/local/bin/paseo");
   assert.deepEqual(inv.args, ["agent"]);
 });

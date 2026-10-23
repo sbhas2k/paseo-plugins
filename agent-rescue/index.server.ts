@@ -9,7 +9,7 @@ import {
   type RescueResult,
 } from "./shared/contracts";
 import { blockers, matchProviderProcesses, rescueState } from "./shared/rescue";
-import { cliReload, getAgent, killTree, listAgents, listProcesses, sleep } from "./server/ops";
+import { cliReload, getAgent, killTree, listAgents, listProcesses, probeCli, sleep } from "./server/ops";
 
 // agent-rescue — rescue an agent whose session died.
 // Reload a stuck agent; if that cannot work, restart its provider's ACP processes (only when no sibling is busy)
@@ -28,6 +28,7 @@ export default function contribute(server: PluginServerContext) {
     settings = state.status === "ready" ? (state.values as AgentRescueSettings) : DEFAULTS;
   };
   void settingsHandle.read().then(apply).catch(() => {});
+  void probeCli().then((line) => console.log(`[agent-rescue] ${line}`));
   const stopSettings = settingsHandle.subscribe(apply);
 
   /** Agent ids with an action in flight, and whether a provider restart is running. */

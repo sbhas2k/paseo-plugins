@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -31,20 +32,38 @@ function errorText(error: unknown): string {
   return (out || e.message || String(error)).split(/\r?\n/).filter(Boolean).slice(-3).join(" | ").slice(0, 400);
 }
 
+/** How this host runs the CLI: the desktop app's bundled one, else `paseo` from PATH. */
+function cli(args: string[]) {
+  return cliInvocation(process.execPath, args, { ...process.env, PASEO_HOME: paseoHome() }, process.platform, existsSync);
+}
+
+async function runCli(args: string[], timeout: number): Promise<string> {
+  const inv = cli(args);
+  const options = { env: inv.env as NodeJS.ProcessEnv, timeout, maxBuffer: 1024 * 1024 };
+  const { stdout } = inv.viaPath
+    ? await execCommand(inv.file, inv.args, options)
+    : await run(inv.file, inv.args, { ...options, windowsHide: true });
+  return String(stdout);
+}
+
+/** Startup self-check: which CLI was found and whether it runs (logged, so a new platform can be verified). */
+export async function probeCli(): Promise<string> {
+  const inv = cli(["--version"]);
+  const where = inv.viaPath ? "paseo from PATH" : `bundled CLI via ${inv.file} (${inv.args[3]})`;
+  try {
+    const version = (await runCli(["--version"], 30_000)).trim().split(/\r?\n/).pop();
+    return `CLI OK: ${where}, version ${version}`;
+  } catch (error) {
+    return `CLI NOT WORKING: ${where}: ${errorText(error)} - Reload will fail; set PASEO_CLI_PATH`;
+  }
+}
+
 /** `paseo agent reload <id>` once. Resolves to null on success, else the error text. */
 export async function cliReload(agentId: string): Promise<string | null> {
   const host = await daemonHost();
-  const inv = cliInvocation(
-    process.execPath,
-    ["agent", "reload", agentId, "--host", host, "--json"],
-    { ...process.env, PASEO_HOME: paseoHome() },
-    process.platform,
-  );
   try {
     // The CLI's own client gives up at 60 s; this is only a backstop for a wedged CLI.
-    const options = { env: inv.env as NodeJS.ProcessEnv, timeout: 90_000, maxBuffer: 1024 * 1024 };
-    if (inv.viaPath) await execCommand(inv.file, inv.args, options);
-    else await run(inv.file, inv.args, { ...options, windowsHide: true });
+    await runCli(["agent", "reload", agentId, "--host", host, "--json"], 90_000);
     return null;
   } catch (error) {
     return errorText(error);

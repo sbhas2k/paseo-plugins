@@ -77,9 +77,12 @@ export interface Invocation {
 }
 
 /**
- * How to run the Paseo CLI. `execFile("paseo")` is ENOENT on Windows (a .cmd). On the Windows desktop app the plugin
- * host runs under Paseo.exe, which runs the bundled CLI when started as node (resources\bin\paseo.cmd) — no PATH
- * needed. Anywhere else (macOS/Linux, a daemon installed from npm) `paseo` is resolved from PATH.
+ * How to run the Paseo CLI. `execFile("paseo")` is ENOENT on Windows (a .cmd), and an app started from the macOS
+ * Dock sees only a minimal PATH. So first look for the CLI bundled with the desktop app: the plugin host runs under
+ * the app's own executable, which runs the bundled CLI when started as node (Windows resources\bin\paseo.cmd does
+ * exactly this). The app's resources directory is searched upward from the executable (`resources` on Windows,
+ * `Contents/Resources` on macOS) and recognised by its unpacked daemon runner. With no desktop app (a daemon
+ * installed from npm) `paseo` is resolved from PATH.
  * PASEO_CLI_PATH overrides: a .js/.mjs entry runs under the current executable, anything else runs directly.
  */
 export function cliInvocation(
@@ -87,6 +90,7 @@ export function cliInvocation(
   args: readonly string[],
   env: Record<string, string | undefined>,
   platform: string,
+  exists: (path: string) => boolean,
 ): Invocation {
   const sep = platform === "win32" ? "\\" : "/";
   const childEnv = { ...env, ELECTRON_RUN_AS_NODE: "1", PASEO_HOST: "" };
@@ -96,23 +100,36 @@ export function cliInvocation(
       ? { file: execPath, args: [override, ...args], env: childEnv }
       : { file: override, args: [...args], env: childEnv };
   }
-  const base = execPath.slice(execPath.lastIndexOf(sep) + 1);
-  if (platform !== "win32" || base.toLowerCase() !== "paseo.exe") {
-    return { file: "paseo", args: [...args], env: childEnv, viaPath: true };
-  }
-  const dir = execPath.slice(0, Math.max(execPath.lastIndexOf(sep), 0));
-  const res = `${dir}${sep}resources`;
+  const res = findResources(execPath, sep, exists);
+  if (!res) return { file: "paseo", args: [...args], env: childEnv, viaPath: true };
   return {
     file: execPath,
     args: [
       "--disable-warning=DEP0040",
-      [res, "app.asar.unpacked", "dist", "daemon", "node-entrypoint-runner.js"].join(sep),
+      [res, ...RUNNER].join(sep),
       "node-script",
       [res, "app.asar", "node_modules", "@getpaseo", "cli", "dist", "index.js"].join(sep),
       ...args,
     ],
     env: childEnv,
   };
+}
+
+const RUNNER = ["app.asar.unpacked", "dist", "daemon", "node-entrypoint-runner.js"];
+
+/** The desktop app's resources directory at or above the executable, or null when there is no desktop app. */
+function findResources(execPath: string, sep: string, exists: (path: string) => boolean): string | null {
+  let dir = execPath.slice(0, Math.max(execPath.lastIndexOf(sep), 0));
+  for (let level = 0; level < 6 && dir; level++) {
+    for (const name of ["resources", "Resources"]) {
+      const res = `${dir}${sep}${name}`;
+      if (exists([res, ...RUNNER].join(sep))) return res;
+    }
+    const up = dir.lastIndexOf(sep);
+    if (up <= 0) break;
+    dir = dir.slice(0, up);
+  }
+  return null;
 }
 
 export interface ProcessInfo {
