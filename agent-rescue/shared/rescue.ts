@@ -9,6 +9,7 @@ export const DEFAULT_PATTERNS: readonly string[] = [
   "ACP agent exited unexpectedly",
   "Session is closed",
   "Session is not initialized",
+  "RPC process is closed",
 ];
 
 /** Provider id → regex over the process command line. Matched only among the daemon's own children. */

@@ -11,6 +11,7 @@ Sometimes an agent's provider session dies under it. One common case is an ACP p
   - `ACP agent exited unexpectedly`
   - `Session is closed`
   - `Session is not initialized`
+  - `RPC process is closed` (Pi)
 - An **Agent Rescue** page in the sidebar listing every such agent on the daemon, across all workspaces, with the same actions and the result of the last one.
 - An agent that is `closed` with one of those texts is shown as **Reloading**, with its actions disabled. The daemon reports a reload in flight that way, so the plugin won't send a second one.
 - Ordinary provider errors, such as a usage limit or "Queuing failed", are not treated as stuck.

@@ -30,6 +30,7 @@ test("every default pattern on an errored agent is stuck", () => {
     "ACP agent exited unexpectedly",
     "Session is closed",
     "Session is not initialized",
+    "Pi RPC process is closed",
   ]) {
     assert.equal(rescueState(agent({ lastError: text }), DEFAULT_PATTERNS), "stuck", text);
   }
