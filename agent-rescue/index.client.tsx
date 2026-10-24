@@ -1,4 +1,5 @@
-import type { PluginButtonRegistration, PluginClientContext } from "@getpaseo/plugin/client";
+import type { PluginButtonRegistration, PluginClientContext, PluginSidebarItemProps } from "@getpaseo/plugin/client";
+import { SidebarRow } from "@getpaseo/plugin/client/ui";
 import { RescueSurface } from "./client/surface";
 import { listStuckRpc, reloadRpc, restartProviderRpc, type StuckAgent } from "./shared/contracts";
 
@@ -8,6 +9,10 @@ import { listStuckRpc, reloadRpc, restartProviderRpc, type StuckAgent } from "./
 
 const POLL_MS = 10_000;
 const SURFACE_ID = "agent-rescue";
+
+function RescueItem({ currentScreen, openScreen }: PluginSidebarItemProps) {
+  return <SidebarRow icon="LifeBuoy" active={currentScreen?.screenId === SURFACE_ID} onPress={() => openScreen({ screenId: SURFACE_ID })} />;
+}
 
 export default function contribute(client: PluginClientContext) {
   const pills = new Map<string, PluginButtonRegistration>();
@@ -81,8 +86,8 @@ export default function contribute(client: PluginClientContext) {
   const timer = setInterval(poll, POLL_MS);
 
   const removers = [
-    client.addSurface(SURFACE_ID, RescueSurface),
-    client.addSidebarItem({ id: "rescue", title: "Agent Rescue", icon: "LifeBuoy", surface: SURFACE_ID }),
+    client.addScreen({ id: SURFACE_ID, title: "Agent Rescue", Component: RescueSurface }),
+    client.addSidebarHeaderItem({ id: "rescue", title: "Agent Rescue", Component: RescueItem }),
   ];
 
   return () => {
