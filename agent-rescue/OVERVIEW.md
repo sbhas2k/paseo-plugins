@@ -2,6 +2,9 @@
 
 Sometimes an agent's provider session dies under it. One common case is an ACP provider (for example Qoder) that stopped answering while a turn was being cancelled. Every new message then fails with **"A foreground turn is already active"**, Stop does nothing, and the agent looks broken for good. The cure is a reload of the agent's session, and sometimes a restart of the provider's processes first. Agent Rescue puts both one click away.
 
+
+![The Agent Rescue sidebar page](assets/sidebar.png)
+
 ## What it shows
 
 - A **Stuck** pill on the composer of any agent whose status is `error` **and** whose last error matches one of these texts (editable in Settings):

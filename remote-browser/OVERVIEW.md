@@ -2,6 +2,9 @@
 
 When Paseo runs on a remote machine (a VM, a home server, a dev box) and you use it from Paseo web, the apps you build there run on *that* machine's `localhost`, which your laptop cannot open. Remote Browser puts a real Chrome on the Paseo host and shows it inside Paseo, so `http://localhost:5173` opens the host's dev server, and any website you visit sees the host's IP address, not your laptop's.
 
+
+![The Remote Browser screen showing a page](assets/browser.png)
+
 ## What it shows
 
 - A **Remote Browser** row in the sidebar opens a screen with Back, Forward, Reload, an address bar, a tab strip, New tab, a frames-per-second readout and Stop.
