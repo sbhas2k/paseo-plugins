@@ -1,0 +1,6 @@
+{
+  "id": "remote-browser",
+  "name": "Remote Browser",
+  "description": "A full Chrome that runs on the Paseo host and is shown and driven from a screen in Paseo: localhost is the host and websites see the host's IP. Tabs, address bar, mouse, keyboard, scrolling and paste work from Paseo web and the desktop app.",
+  "requirements": { "paseo": ">=0.12.0" }
+}

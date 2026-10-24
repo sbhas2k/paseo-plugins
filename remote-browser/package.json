@@ -1,0 +1,26 @@
+{
+  "name": "paseo-remote-browser",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A Chrome on the Paseo host, shown and driven from a screen in Paseo.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbhas2k/paseo-plugins.git",
+    "directory": "remote-browser"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/pure.test.ts"
+  },
+  "devDependencies": {
+    "@getpaseo/plugin": "0.11.4",
+    "@types/node": "^22.10.2",
+    "@types/react": "~19.2.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
+  }
+}
