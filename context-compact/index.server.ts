@@ -95,6 +95,13 @@ export async function lastContextTokens(file: string): Promise<number | null> {
 const fill = (template: string, values: Record<string, string>): string =>
   template.replace(/\{(\w+)\}/g, (m, k: string) => values[k] ?? m);
 
+// Paseo 0.13.0 (#7477) sends agent.turn_ended with an empty `timeline`; fetch the tail when it is empty.
+async function turnTimeline<T>(paseo: any, agentId: string, given: readonly T[], limit: number): Promise<readonly T[]> {
+  if (given.length > 0) return given;
+  const page = await paseo.agents.ref(agentId).timeline.refetch({ direction: "tail", limit, projection: "canonical" });
+  return page.entries.map((entry: { item: T }) => entry.item);
+}
+
 export default function contribute(server: PluginServerContext) {
   const settingsHandle = server.registerSettings(contextCompactSettings);
   const nudged = new Set<string>();
@@ -120,7 +127,7 @@ export default function contribute(server: PluginServerContext) {
   });
 
   const removeTurn = server.on("agent.turn_ended", async (event, { paseo }) => {
-    const { agent, outcome, timeline } = event;
+    const { agent, outcome } = event;
     try {
       const s = await current();
       if (!s || !s.enabled || s.handoffPct <= 0 || !s.providers.includes(agent.provider)) return;
@@ -143,6 +150,7 @@ export default function contribute(server: PluginServerContext) {
       }
       if (pct >= s.compactPct || nudged.has(agent.id)) return;
       // The nudge's own turn ends here too; it is covered by `nudged`, but never answer a nudge with a nudge.
+      const timeline = await turnTimeline(paseo, agent.id, event.timeline, 50);
       const lastPrompt = [...timeline].reverse().find((item) => item.type === "user_message") as { text?: string } | undefined;
       if ((lastPrompt?.text ?? "").startsWith(PREFIX)) return;
 
