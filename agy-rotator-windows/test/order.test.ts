@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { moveSlot, planSave, parseSlotIndex, type SlotEntry } from "../shared/slots.ts";
 import { credDelete } from "../server/cred.ts";
 import { accountKey } from "../server/key.ts";
 import { indexPath, pluginDataDir, readIndex, reorderSlot, saveSlot } from "../server/store.ts";
 import { mkdir } from "node:fs/promises";
-import { syntheticBlob, testEmail, withTempPaseoHome } from "../testutil/support.ts";
+import { sweepFixtures, syntheticBlob, testEmail, trackFixture, withTempPaseoHome } from "../testutil/support.ts";
+
+// AC11: swept even when a test throws before its own `finally`.
+after(sweepFixtures);
 
 // S3 (owner 2026-10-26): *"1st one. But we should let user move the account up n down. So they can arrange any time as
 // needed."* — every saved account carries an explicit position, a new save joins the end, and ▲/▼ rewrites the sequence.

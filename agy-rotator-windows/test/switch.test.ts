@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { credDelete, credRead, credWrite, writeLive } from "../server/cred.ts";
 import { readIndex, renameSlot, saveSlot, setSlotUsage } from "../server/store.ts";
 import { pendingFold, emptyPending, type PendingState } from "../shared/pending.ts";
 import { emptySwitchState, switchAccount, type SwitchAgent, type SwitchOptions } from "../server/switch.ts";
 import { autoDecide } from "../shared/auto.ts";
 import { SingleFlight } from "../server/single-flight.ts";
-import { keyOf, syntheticBlob, testEmail, testLiveTarget, withTempPaseoHome } from "../testutil/support.ts";
+import { keyOf, sweepFixtures, syntheticBlob, testEmail, testLiveTarget, trackFixture, withTempPaseoHome } from "../testutil/support.ts";
+
+// AC11: whatever this file creates is swept even when a test throws before its own `finally` (see testutil/support.ts).
+after(sweepFixtures);
 
 // S2 — the switch sequence of plan §3.4, run in order against throwaway credentials through the REAL powershell helper.
 // Only the two things that reach a running system are stubbed: the CLI reload and the timeline note (the dispatch's
@@ -37,6 +40,10 @@ async function setup(): Promise<Harness> {
   const blobB = syntheticBlob(emailB);
   const keyA = keyOf(emailA);
   const keyB = keyOf(emailB);
+  // AC11: registered BEFORE anything is written, so a throw between the write and the caller's `finally` is still swept.
+  trackFixture(live);
+  trackFixture(`paseo-agy-accounts:${keyA}`);
+  trackFixture(`paseo-agy-accounts:${keyB}`);
   // A is the account currently signed in: save it from the live entry, the way "Save current account" does.
   await writeLive(live, blobA);
   const savedA = await saveSlot(blobA);

@@ -43,6 +43,61 @@ export function testLiveTarget(): string {
   return `paseo-agy-accounts:test-live-${randomBytes(6).toString("hex")}`;
 }
 
+/**
+ * AC11 regression (2026-10-27): a test run left ONE `paseo-agy-accounts:*` target behind — a fixture whose test threw
+ * between writing the credential and reaching the `finally` that would have deleted it (or a run that was killed).
+ *
+ * Two defences, both here:
+ *  - `trackFixture` records an EXACT target name *before* the credential is written, so a later throw still leaves a name
+ *    the file's `after` hook can delete;
+ *  - `sweepFixtures` runs at the end of a test file and deletes (a) any `paseo-agy-accounts:test-*` target and (b) the
+ *    exact hex16 targets THIS RUN registered — never a hex16 target chosen by pattern (that is how a real account card's
+ *    slot would be deleted), and never a target the index knows.
+ */
+const fixtures = new Set<string>();
+
+/** Register an exact target name. Call this BEFORE writing the credential, never after. */
+export function trackFixture(target: string): string {
+  fixtures.add(target);
+  return target;
+}
+
+const SLOT_PREFIX = "paseo-agy-accounts:";
+
+/** Delete this run's fixtures (and any stray `test-` target). Safe by construction: see above. */
+export async function sweepFixtures(): Promise<void> {
+  const { credDelete, credEnumerate } = await import("../server/cred.ts");
+  const { readIndex } = await import("../server/store.ts");
+  let indexed: Set<string>;
+  try {
+    indexed = new Set((await readIndex()).map((entry) => `${SLOT_PREFIX}${entry.key}`));
+  } catch {
+    // Without the index there is no safe way to tell a fixture from an account card: delete nothing.
+    return;
+  }
+  let census: string[] = [];
+  try {
+    census = await credEnumerate(SLOT_PREFIX);
+  } catch {
+    return;
+  }
+  for (const target of census) {
+    if (!target.startsWith(SLOT_PREFIX) || indexed.has(target)) continue;
+    const key = target.slice(SLOT_PREFIX.length);
+    if (key.startsWith("test-") || fixtures.has(target)) await credDelete(target).catch(() => {});
+  }
+  fixtures.clear();
+}
+
+/** The targets under the plugin's prefix right now (names only) — the before/after proof's own census. */
+export async function fixtureCensus(): Promise<string[]> {
+  const { credEnumerate } = await import("../server/cred.ts");
+  return (await credEnumerate(SLOT_PREFIX)).filter((target) => target.startsWith(SLOT_PREFIX));
+}
+
+/** This run's registered targets, for the budget assertion in the leak-guard test. */
+export const trackedFixtures = (): string[] => [...fixtures];
+
 /** Points PASEO_HOME at a temp directory for the duration of `fn`, then removes it and restores the variable. */
 export async function withTempPaseoHome<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const home = await mkdtemp(path.join(os.tmpdir(), "agy-rotator-windows-test-"));

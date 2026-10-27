@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { credDelete, credRead, writeLive } from "../server/cred.ts";
 import { readIndex, renameSlot, saveSlot } from "../server/store.ts";
 import { reassert, type ReassertDeps } from "../server/reassert.ts";
 import { emptySwitchState } from "../server/switch.ts";
-import { keyOf, syntheticBlob, testEmail, testLiveTarget, withTempPaseoHome } from "../testutil/support.ts";
+import { keyOf, sweepFixtures, syntheticBlob, testEmail, testLiveTarget, trackFixture, withTempPaseoHome } from "../testutil/support.ts";
+
+// AC11: swept even when a test throws before its own `finally`.
+after(sweepFixtures);
 
 // S2 — the re-assert (plan §3.5) with the three r3 implementer notes:
 //   (i)   an adoption is NOT a switch: it reloads nothing. `reassert.ts` has no reload dependency at all, which is the
@@ -31,6 +34,10 @@ async function setup(): Promise<Wire> {
   const blobB = syntheticBlob(emailB);
   const keyA = keyOf(emailA);
   const keyB = keyOf(emailB);
+  // AC11: registered before the first write (see the other setup()).
+  trackFixture(liveTarget);
+  trackFixture(`paseo-agy-accounts:${keyA}`);
+  trackFixture(`paseo-agy-accounts:${keyB}`);
   await writeLive(liveTarget, blobA);
   await saveSlot(blobA);
   await renameSlot(keyA, "Account A");

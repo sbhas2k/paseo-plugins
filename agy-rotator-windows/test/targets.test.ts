@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { LIVE_TARGET, liveReadable, slotWritable } from "../shared/targets.ts";
 import { credDelete, credMeta, credRead, credWrite, writeLive } from "../server/cred.ts";
+import { sweepFixtures } from "../testutil/support.ts";
 
 // S2 — the live entry's guardrails, and the metadata probe the gate and S3 both need.
 //
@@ -69,3 +70,6 @@ test("metadata is read without the blob: type, persist, user, LastWritten, size"
   }
   assert.equal(await credMeta(target), null);
 });
+
+// AC11: the file-level sweep, so a throwing test cannot leave a target behind.
+after(sweepFixtures);

@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { credDelete } from "../server/cred.ts";
 import { accountKey } from "../server/key.ts";
 import { readIndex, reorderSlot, renameSlot, saveSlot, setSlotUsage } from "../server/store.ts";
-import { syntheticBlob, testEmail, withTempPaseoHome } from "../testutil/support.ts";
+import { sweepFixtures, syntheticBlob, testEmail, trackFixture, withTempPaseoHome } from "../testutil/support.ts";
+
+// AC11: swept even when a test throws before its own `finally`.
+after(sweepFixtures);
 
 // F-03 (Gemini review, 9da9e943): every slot writer does read-modify-write on `index.json` (read, change one entry,
 // rewrite the whole file). Two of them interleaving lose one update: both read the same file, both write, the last writer

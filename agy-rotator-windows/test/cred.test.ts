@@ -3,10 +3,11 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { CredentialNotFound, credDelete, credRead, credWrite, helperArgs } from "../server/cred.ts";
 import { accountKey } from "../server/key.ts";
 import { indexPath, loadSlot, pluginDataDir, readIndex, removeSlot, saveSlot } from "../server/store.ts";
+import { sweepFixtures } from "../testutil/support.ts";
 
 // AC3 — the vault round-trip THROUGH THE REAL `powershell.exe` HELPER, with a SYNTHETIC blob: never the live
 // `gemini:antigravity` entry, never a real token, never a real email. Target names live under
@@ -146,3 +147,6 @@ test("a blob with no email is refused by the store, and writes nothing", async (
 test("CredentialNotFound is what a switch steps over", () => {
   assert.equal(new CredentialNotFound("x") instanceof Error, true);
 });
+
+// AC11: the file-level sweep, so a throwing test cannot leave a target behind.
+after(sweepFixtures);
