@@ -1,0 +1,11 @@
+{
+  "id": "agy-rotator-windows",
+  "name": "agy rotator (Windows)",
+  "description": "Rotates your saved Antigravity (agy) accounts on Windows when one runs low, in your order. On Linux/macOS use antigravity-cli's built-in multi-account.",
+  "requirements": {
+    "paseo": ">=0.13.0"
+  },
+  "media": [
+    "assets/screen.png"
+  ]
+}

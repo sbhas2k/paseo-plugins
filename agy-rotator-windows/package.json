@@ -1,0 +1,26 @@
+{
+  "name": "paseo-agy-rotator-windows",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rotates your saved Antigravity (agy) accounts on Windows when one runs low, in your order. On Linux/macOS use antigravity-cli's built-in multi-account.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbhas2k/paseo-plugins.git",
+    "directory": "agy-rotator-windows"
+  },
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-concurrency=1 test/usage.test.ts test/decide.test.ts test/slots.test.ts test/polled.test.ts test/drift.test.ts test/view.test.ts test/usage-cache.test.ts test/usage-report.test.ts test/auto.test.ts test/settings.test.ts test/help.test.ts test/terminals.test.ts test/quota-format.test.ts test/quota-api.test.ts test/quota-transport.test.ts test/state.test.ts test/order.test.ts test/single-flight.test.ts test/screen-scroll.test.ts test/screen-layout.test.ts test/pairing.test.ts test/keyscan.test.ts test/poller.test.ts test/cleanup-plan.test.ts test/migrate.test.ts test/package-tree.test.ts test/cred.test.ts test/targets.test.ts test/store-race.test.ts test/switch.test.ts test/reassert.test.ts"
+  },
+  "devDependencies": {
+    "@getpaseo/plugin": "0.13.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "~19.2.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
+  }
+}
